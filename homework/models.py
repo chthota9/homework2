@@ -28,6 +28,7 @@ class ClassificationLoss(nn.Module):
             tensor, scalar loss
         """
         # raise NotImplementedError("ClassificationLoss.forward() is not implemented")
+        #softmax log-likelihood loss
         return F.cross_entropy(logits, target)
 
 
@@ -44,8 +45,13 @@ class LinearClassifier(nn.Module):
             w: int, width of the input image
             num_classes: int, number of classes
         """
+        #intialize pytorch module
         super().__init__()
+
+        #B = batch size, 3 = RGB channels ,64 × 64 = image resolution
+        #perform logistic regression
         self.linear = nn.Linear(3 * h * w, num_classes)
+
         # raise NotImplementedError("LinearClassifier.__init__() is not implemented")
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -56,7 +62,7 @@ class LinearClassifier(nn.Module):
         Returns:
             tensor (b, num_classes) logits
         """
-        x = x.view(x.size(0), -1)
+        # x = x.view(x.size(0), -1)
         return self.linear(x)
         # raise NotImplementedError("LinearClassifier.forward() is not implemented")
 

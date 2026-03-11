@@ -38,8 +38,8 @@ def test_logging(logger: tb.SummaryWriter):
             global_step += 1
 
         # TODO: log average train_accuracy
-        avg_train_acc = torch.stack(metrics["train_acc"]).mean()
-        logger.add_scalar("train_accuracy", avg_train_acc, global_step)
+        train_acc_avg = torch.stack(metrics["train_acc"]).mean()
+        logger.add_scalar("train_accuracy", train_acc_avg, global_step)
 
         # example validation loop
         torch.manual_seed(epoch)
@@ -50,8 +50,8 @@ def test_logging(logger: tb.SummaryWriter):
             metrics["val_acc"].append(dummy_validation_accuracy.mean())
 
         # TODO: log average val_accuracy
-        avg_val_acc = torch.stack(metrics["val_acc"]).mean()
-        logger.add_scalar("val_accuracy", avg_val_acc, global_step)
+        val_acc_avg = torch.stack(metrics["val_acc"]).mean()
+        logger.add_scalar("val_accuracy", val_acc_avg, global_step)
 
 
 if __name__ == "__main__":
