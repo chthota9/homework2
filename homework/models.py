@@ -62,7 +62,7 @@ class LinearClassifier(nn.Module):
         Returns:
             tensor (b, num_classes) logits
         """
-        # x = x.view(x.size(0), -1)
+        x = x.view(x.size(0), -1)
         return self.linear(x)
         # raise NotImplementedError("LinearClassifier.forward() is not implemented")
 
