@@ -50,7 +50,8 @@ class LinearClassifier(nn.Module):
 
         #B = batch size, 3 = RGB channels ,64 × 64 = image resolution
         #perform logistic regression
-        self.linear = nn.Linear(3 * h * w, num_classes)
+        images_dim = 3 * h * w
+        self.linear = nn.Linear(images_dim, num_classes)
 
         # raise NotImplementedError("LinearClassifier.__init__() is not implemented")
 
@@ -62,6 +63,7 @@ class LinearClassifier(nn.Module):
         Returns:
             tensor (b, num_classes) logits
         """
+        #reshapes the tensor so that shapes can be properly multipled
         x = x.view(x.size(0), -1)
         return self.linear(x)
         # raise NotImplementedError("LinearClassifier.forward() is not implemented")
@@ -83,10 +85,12 @@ class MLPClassifier(nn.Module):
             w: int, width of the input image
             num_classes: int, number of classes
         """
+        #intialize pytorch module
         super().__init__()
-        input_dim = 3 * h * w
+
+        images_dim = 3 * h * w
         self.network = nn.Sequential(
-            nn.Linear(input_dim, hidden_dim),
+            nn.Linear(images_dim, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, num_classes),
         )
@@ -127,15 +131,25 @@ class MLPClassifierDeep(nn.Module):
             hidden_dim: int, size of hidden layers
             num_layers: int, number of hidden layers
         """
+
+        #intialize pytorch module
         super().__init__()
 
-        input_dim = 3 * h * w
-        layers = [nn.Linear(input_dim, hidden_dim), nn.ReLU()]
+        #first layer
+        images_dim = 3 * h * w
+        layers = [
+                nn.Linear(images_dim, hidden_dim),
+                nn.ReLU()
+            ]
 
-        for _ in range(num_layers - 1):
-            layers.append(nn.Linear(hidden_dim, hidden_dim))
-            layers.append(nn.ReLU())
+        #add remaining layers
+        for layer in range(num_layers - 1):
+              layers.extend([
+                nn.Linear(hidden_dim, hidden_dim), # fully connected hidden layer
+                nn.ReLU() # non-linear activation
+            ])
 
+        #
         layers.append(nn.Linear(hidden_dim, num_classes))
         self.network = nn.Sequential(*layers)
 
@@ -154,6 +168,8 @@ class MLPClassifierDeep(nn.Module):
         return self.network(x)
     
 class ResidualBlock(nn.Module):
+    #each block has size hidden_dim
+    #help from online
     def __init__(self, hidden_dim: int):
         super().__init__()
         self.block = nn.Sequential(
@@ -188,12 +204,16 @@ class MLPClassifierDeepResidual(nn.Module):
         """
         super().__init__()
 
-        input_dim = 3 * h * w
-        self.input_layer = nn.Linear(input_dim, hidden_dim)
+        images_dim = 3 * h * w
+
+        self.input_layer = nn.Linear(images_dim, hidden_dim)
         self.input_relu = nn.ReLU()
+
+        #for each block, do x → ReLU(x + F(x))
         self.residual_blocks = nn.ModuleList(
-            [ResidualBlock(hidden_dim) for _ in range(num_blocks)]
+            [ResidualBlock(hidden_dim) for block in range(num_blocks)]
         )
+
         self.output_layer = nn.Linear(hidden_dim, num_classes)
 
         # raise NotImplementedError("MLPClassifierDeepResidual.__init__() is not implemented")
@@ -209,6 +229,8 @@ class MLPClassifierDeepResidual(nn.Module):
         # raise NotImplementedError("MLPClassifierDeepResidual.forward() is not implemented")
         x = x.view(x.size(0), -1)
         x = self.input_relu(self.input_layer(x))
+
+        #pass the data through each block
         for block in self.residual_blocks:
             x = block(x)
         return self.output_layer(x)
